@@ -1,0 +1,13 @@
+# Render blueprint — point Render at this repo and it reads these settings.
+services:
+  - type: web
+    name: klse-viewer
+    runtime: node
+    plan: free
+    region: singapore          # closest Render region to Bursa and to you
+    buildCommand: npm ci       # package-lock.json is committed, so ci is reproducible
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: "20"

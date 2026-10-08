@@ -1,0 +1,381 @@
+/* ============ tokens ============ */
+:root {
+  --bg:        #f7f8fa;
+  --surface:   #ffffff;
+  --surface-2: #f1f3f6;
+  --line:      #e3e7ed;
+  --line-soft: #eef1f5;
+  --text:      #10151c;
+  --text-2:    #5b6675;
+  --text-3:    #8b95a4;
+  /* Colour convention: red rises, green falls (Chinese / Asian markets).
+     These two tokens drive the candles, volume bars, change pill and the
+     52-week gradient — swap them back to get the Western scheme. */
+  --up:        #f23645;   /* price rose  */
+  --down:      #089981;   /* price fell  */
+  --accent:    #2563eb;
+  --shadow:    0 1px 2px rgba(16,21,28,.05), 0 8px 24px -12px rgba(16,21,28,.18);
+  --grid:      #eceff3;
+  --radius:    14px;
+}
+
+:root[data-theme="dark"] {
+  --bg:        #0b0e13;
+  --surface:   #131820;
+  --surface-2: #1a212b;
+  --line:      #232b37;
+  --line-soft: #1c232e;
+  --text:      #e8edf4;
+  --text-2:    #97a3b4;
+  --text-3:    #6b7787;
+  --up:        #ef5350;   /* price rose  */
+  --down:      #26a69a;   /* price fell  */
+  --accent:    #5b9cff;
+  --shadow:    0 1px 2px rgba(0,0,0,.4), 0 12px 32px -16px rgba(0,0,0,.7);
+  --grid:      #1b222c;
+}
+
+* { box-sizing: border-box; }
+
+html { color-scheme: light dark; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.5 ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition: background .2s ease, color .2s ease;
+}
+
+.num, .last, .legend, .range52-ends, .chip, .pill { font-variant-numeric: tabular-nums; }
+
+/* ============ top bar ============ */
+.topbar {
+  position: sticky; top: 0; z-index: 40;
+  display: flex; align-items: center; gap: 14px;
+  padding: 10px 18px;
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  backdrop-filter: saturate(1.6) blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+
+.brand {
+  display: flex; align-items: center; gap: 8px;
+  color: var(--text); text-decoration: none;
+  font-weight: 700; letter-spacing: -.02em; white-space: nowrap;
+}
+.brand svg { width: 22px; height: 22px; color: var(--accent); }
+
+/* search */
+.search { position: relative; flex: 1; max-width: 560px; }
+.search-icon {
+  position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+  width: 17px; height: 17px; color: var(--text-3); pointer-events: none;
+}
+.search input {
+  width: 100%; padding: 11px 36px 11px 38px;
+  border: 1px solid var(--line); border-radius: 10px;
+  background: var(--surface-2); color: var(--text); font-size: 15px;
+  transition: border-color .15s, background .15s;
+}
+.search input::placeholder { color: var(--text-3); }
+.search input:focus {
+  outline: none; border-color: var(--accent); background: var(--surface);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
+}
+.search input:focus + .hint { opacity: 0; }
+.hint {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  font: 600 11px/1 ui-monospace, monospace; color: var(--text-3);
+  border: 1px solid var(--line); border-radius: 5px; padding: 3px 6px;
+  background: var(--surface); transition: opacity .15s; pointer-events: none;
+}
+
+.results {
+  position: absolute; top: calc(100% + 8px); left: 0; right: 0;
+  margin: 0; padding: 5px; list-style: none;
+  max-height: 360px; overflow-y: auto;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 12px; box-shadow: var(--shadow);
+}
+.results li {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 10px 12px; border-radius: 8px; cursor: pointer;
+}
+.results li[aria-selected="true"], .results li:hover { background: var(--surface-2); }
+.results .sym { font-weight: 650; font-size: 15px; }
+.results .code { color: var(--text-3); font-size: 12px; font-variant-numeric: tabular-nums; }
+.results .nm {
+  margin-left: auto; color: var(--text-2); font-size: 12.5px;
+  max-width: 55%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.actions { display: flex; gap: 6px; margin-left: auto; }
+.icon-btn {
+  display: grid; place-items: center;
+  width: 34px; height: 34px; padding: 0;
+  border: 1px solid var(--line); border-radius: 9px;
+  background: var(--surface-2); color: var(--text-2); cursor: pointer;
+  transition: color .15s, border-color .15s, background .15s;
+}
+.icon-btn svg { width: 17px; height: 17px; }
+.icon-btn:hover { color: var(--accent); border-color: var(--accent); background: var(--surface); }
+.icon-btn.busy { animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.i-moon { display: none; }
+:root[data-theme="dark"] .i-sun { display: none; }
+:root[data-theme="dark"] .i-moon { display: block; }
+
+/* ============ layout ============ */
+main { max-width: 1600px; margin: 0 auto; padding: 22px 18px 10px; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+}
+
+/* ============ hero ============ */
+.hero {
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
+  gap: 16px 28px; padding: 4px 4px 20px;
+}
+.sym-row { display: flex; align-items: center; gap: 9px; }
+.hero h1 { margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -.025em; }
+.chip {
+  font-size: 11.5px; font-weight: 600; color: var(--text-2);
+  border: 1px solid var(--line); background: var(--surface-2);
+  padding: 2px 7px; border-radius: 6px;
+}
+.company { margin: 5px 0 0; color: var(--text-2); font-size: 13.5px; }
+
+.hero-price { text-align: right; }
+.last { font-size: 38px; font-weight: 680; letter-spacing: -.03em; line-height: 1.05; }
+.meta { display: flex; align-items: center; gap: 10px; justify-content: flex-end; margin-top: 6px; }
+.pill {
+  font-size: 13.5px; font-weight: 600; padding: 3px 9px; border-radius: 7px;
+}
+.pill.up   { color: var(--up);   background: color-mix(in srgb, var(--up) 13%, transparent); }
+.pill.down { color: var(--down); background: color-mix(in srgb, var(--down) 13%, transparent); }
+.pill.flat { color: var(--text-2); background: var(--surface-2); }
+.asof { color: var(--text-3); font-size: 12.5px; }
+.last.flash { animation: flash .6s ease; }
+@keyframes flash { 0% { color: var(--accent); } 100% { color: inherit; } }
+
+/* ============ periods ============ */
+.periods {
+  display: flex; gap: 2px; flex-wrap: wrap;
+  padding: 12px 14px; border-bottom: 1px solid var(--line-soft);
+}
+.periods button {
+  border: 0; background: none; cursor: pointer;
+  color: var(--text-2); font: 600 12.5px/1 inherit;
+  padding: 7px 11px; border-radius: 8px; letter-spacing: .02em;
+  transition: background .15s, color .15s;
+}
+.periods button:hover { background: var(--surface-2); color: var(--text); }
+.periods button[aria-selected="true"] { background: var(--accent); color: #fff; }
+
+/* ============ chart ============ */
+.chart-wrap { position: relative; padding: 12px 14px 14px; }
+#chart { height: min(520px, 58vh); }
+@media (min-width: 1400px) { #chart { height: min(680px, 64vh); } }
+
+.legend {
+  position: absolute; top: 20px; left: 22px; z-index: 3;
+  display: flex; gap: 12px; flex-wrap: wrap;
+  font-size: 12px; color: var(--text-2); pointer-events: none;
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  padding: 5px 9px; border-radius: 8px; backdrop-filter: blur(6px);
+}
+.legend b { font-weight: 600; color: var(--text); margin-left: 3px; }
+.legend .k { color: var(--text-3); }
+
+.veil {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  background: color-mix(in srgb, var(--surface) 65%, transparent);
+  border-radius: var(--radius); opacity: 0; pointer-events: none;
+  transition: opacity .18s;
+}
+.veil.on { opacity: 1; }
+.spinner {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 2.5px solid var(--line); border-top-color: var(--accent);
+  animation: spin .7s linear infinite;
+}
+
+/* ============ stats ============ */
+.stats-card { padding: 18px 20px; }
+/* Three grouped columns, mirroring how KLSE Screener itself blocks these
+   fields: trade snapshot, valuation, balance sheet. Stacks on narrow screens. */
+.fundamentals {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 8px 28px; margin: 0 0 20px;
+}
+@media (max-width: 720px) { .fundamentals { grid-template-columns: 1fr; gap: 4px; } }
+
+.fgroup + .fgroup { border-left: 1px solid var(--line-soft); padding-left: 28px; }
+@media (max-width: 720px) {
+  .fgroup + .fgroup {
+    border-left: 0; padding-left: 0;
+    border-top: 1px solid var(--line-soft); padding-top: 12px; margin-top: 12px;
+  }
+}
+
+.fgroup h2 {
+  margin: 0 0 8px; font-size: 11px; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--text-3);
+}
+.fgroup dl { margin: 0; }
+.fgroup dl > div {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 12px; padding: 5px 0;
+}
+.fgroup dl > div + div { border-top: 1px solid var(--line-soft); }
+.fgroup dt { color: var(--text-2); font-size: 12.5px; white-space: nowrap; }
+.fgroup dd {
+  margin: 0; font-size: 13.5px; font-weight: 550; text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.range52 { border-top: 1px solid var(--line-soft); padding-top: 16px; }
+.range52-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 11px; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--text-3); margin-bottom: 10px;
+}
+.range52-pos { color: var(--text-2); }
+.range52-track {
+  position: relative; height: 6px; border-radius: 99px;
+  background: var(--surface-2); border: 1px solid var(--line-soft);
+}
+.range52-fill {
+  position: absolute; inset: 0 auto 0 0; width: 0;
+  border-radius: 99px; background: linear-gradient(90deg, var(--down), var(--up));
+  transition: width .4s ease;
+}
+.range52-dot {
+  position: absolute; top: 50%; left: 0;
+  width: 12px; height: 12px; margin: -6px 0 0 -6px;
+  border-radius: 50%; background: var(--surface);
+  border: 2.5px solid var(--accent); transition: left .4s ease;
+}
+.range52-ends {
+  display: flex; justify-content: space-between;
+  margin-top: 7px; font-size: 12.5px; color: var(--text-2);
+}
+
+/* ============ skeleton / status ============ */
+.skel {
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--line) 50%, var(--surface-2) 75%);
+  background-size: 200% 100%; animation: shimmer 1.3s infinite;
+  color: transparent !important; min-width: 110px; display: inline-block;
+}
+.skel-lg { min-width: 170px; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+.status { text-align: center; color: var(--text-2); padding: 26px 0; margin: 0; }
+.status.error { color: var(--down); }
+
+.foot { text-align: center; color: var(--text-3); font-size: 12px; padding: 18px 18px 34px; }
+
+/* ============ responsive ============ */
+@media (max-width: 680px) {
+  .topbar { flex-wrap: wrap; padding: 10px 14px; }
+  .search { order: 3; flex-basis: 100%; max-width: none; }
+  main { padding: 16px 14px 6px; }
+  .hero { padding-bottom: 16px; }
+  .hero-price { text-align: left; }
+  .meta { justify-content: flex-start; }
+  .last { font-size: 32px; }
+  #chart { height: 320px; }
+  .legend { position: static; margin-bottom: 8px; }
+}
+
+/* ============ TV mode ============ */
+/* Reached with ?tv — a display-only view for a big screen read from across a
+   room. Sizes are in vw so one rule set covers 1080p and 4K alike, and the
+   frame is locked to the viewport: a wall display must never need scrolling. */
+[data-tv] .foot { display: none; }
+
+/* The board is a flex column so the search bar and the grid share the viewport
+   without the page ever growing past one screen. */
+[data-tv] body { height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+[data-tv] .topbar { flex: none; padding: .6vw 1.3vw; }
+[data-tv] .brand,
+[data-tv] .actions,
+[data-tv] .hint { display: none; }
+[data-tv] .search { max-width: none; }
+[data-tv] .search input { font-size: 1.25vw; padding: .7vw 1vw .7vw 3.2vw; border-radius: .6vw; }
+[data-tv] .search input:focus { box-shadow: 0 0 0 .25vw color-mix(in srgb, var(--accent) 22%, transparent); }
+[data-tv] .search-icon { width: 1.5vw; height: 1.5vw; left: 1vw; }
+[data-tv] .results {
+  top: calc(100% + .5vw); padding: .4vw; border-radius: .7vw; max-height: 62vh;
+}
+[data-tv] .results li { padding: .7vw .9vw; border-radius: .5vw; gap: 1vw; }
+[data-tv] .results .sym { font-size: 1.3vw; }
+[data-tv] .results .code,
+[data-tv] .results .nm { font-size: 1.05vw; }
+
+[data-tv] main {
+  max-width: none; margin: 0; flex: 1; min-height: 0; overflow: hidden;
+  padding: 1.1vw 1.3vw;
+  display: grid;
+  grid-template-columns: 62fr 38fr;
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas: "hero hero" "chart stats";
+  gap: .8vw 1.1vw;
+}
+[data-tv] .hero { grid-area: hero; }
+[data-tv] .chart-card { grid-area: chart; }
+[data-tv] .stats-card {
+  grid-area: stats; min-height: 0; overflow: hidden;
+  display: flex; flex-direction: column;
+}
+
+/* The chart absorbs whatever height the hero and the table leave behind. */
+[data-tv] .chart-card { margin: 0; display: flex; flex-direction: column; min-height: 0; }
+[data-tv] .chart-wrap { flex: 1; min-height: 0; padding: .7vw .9vw .8vw; }
+[data-tv] #chart { height: 100%; }
+[data-tv] .stats-card { margin: 0; padding: .9vw 1.3vw; }
+
+[data-tv] .hero { padding: 0 .2vw; gap: .6vw 2vw; }
+[data-tv] .hero h1 { font-size: 2.3vw; }
+[data-tv] .chip { font-size: .95vw; padding: .15vw .55vw; border-radius: .4vw; }
+[data-tv] .company { font-size: 1vw; margin-top: .3vw; }
+[data-tv] .last { font-size: 3.2vw; }
+[data-tv] .meta { gap: .8vw; margin-top: .2vw; }
+[data-tv] .pill { font-size: 1.25vw; padding: .2vw .65vw; border-radius: .45vw; }
+[data-tv] .asof { font-size: .95vw; }
+
+[data-tv] .periods { padding: .5vw .9vw; gap: .2vw; }
+[data-tv] .periods button { font-size: .95vw; padding: .4vw .85vw; border-radius: .45vw; }
+
+/* The rows share out whatever height the column has, so the table fits any
+   screen exactly instead of being clipped at the bottom on a short one. */
+[data-tv] .fundamentals {
+  grid-template-columns: 1fr; gap: 0; margin-bottom: .5vw;
+  flex: 1; min-height: 0; display: flex; flex-direction: column;
+}
+[data-tv] .fgroup { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+[data-tv] .fgroup + .fgroup {
+  border-left: 0; padding-left: 0;
+  border-top: 1px solid var(--line-soft); padding-top: .4vw; margin-top: .4vw;
+}
+[data-tv] .fgroup dl { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+[data-tv] .fgroup dl > div { flex: 1; padding: 0; align-items: center; }
+[data-tv] .fgroup h2 { font-size: .75vw; margin-bottom: .15vw; }
+[data-tv] .fgroup dt { font-size: 1vw; line-height: 1.15; }
+[data-tv] .fgroup dd { font-size: 1.2vw; line-height: 1.15; }
+[data-tv] .range52 { flex: none; }
+
+[data-tv] .range52 { padding-top: .8vw; }
+[data-tv] .range52-head { font-size: .85vw; margin-bottom: .5vw; }
+[data-tv] .range52-track { height: .4vw; }
+[data-tv] .range52-dot { width: .85vw; height: .85vw; margin: -.42vw 0 0 -.42vw; }
+[data-tv] .range52-ends { font-size: 1.05vw; }

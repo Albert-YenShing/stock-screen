@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KLSE Viewer</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>📈</text></svg>">
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="#" title="KLSE Viewer">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-6 4 4 5-8 4 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span>KLSE</span>
+  </a>
+
+  <div class="search" role="combobox" aria-expanded="false" aria-haspopup="listbox">
+    <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <input id="search" type="search" placeholder="Search stock or code" autocomplete="off" spellcheck="false" aria-label="Search stock">
+    <kbd class="hint">/</kbd>
+    <ul id="results" class="results" role="listbox" hidden></ul>
+  </div>
+
+  <div class="actions">
+    <button id="theme" class="icon-btn" title="Toggle theme" aria-label="Toggle theme">
+      <svg class="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2" fill="currentColor"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5 5l1.4 1.4M17.6 17.6L19 19M19 5l-1.4 1.4M6.4 17.6L5 19"/></g></svg>
+      <svg class="i-moon" viewBox="0 0 24 24"><path d="M21 13.2A8.5 8.5 0 1110.8 3a6.8 6.8 0 1010.2 10.2z" fill="currentColor"/></svg>
+    </button>
+    <button id="refresh" class="icon-btn" title="Refresh" aria-label="Refresh">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 11a8 8 0 10-2.3 5.7"/><path d="M20 4v6h-6"/></svg>
+    </button>
+  </div>
+</header>
+
+<main>
+  <!-- quote -->
+  <section id="hero" class="hero" aria-live="polite">
+    <div class="hero-ident">
+      <div class="sym-row">
+        <h1 id="q-symbol" class="skel skel-lg">&nbsp;</h1>
+        <span id="q-code" class="chip"></span>
+      </div>
+      <p id="q-company" class="company skel">&nbsp;</p>
+    </div>
+
+    <div class="hero-price">
+      <div id="q-last" class="last skel skel-lg">&nbsp;</div>
+      <div class="meta">
+        <span id="q-change" class="pill"></span>
+        <span id="q-asof" class="asof"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- chart -->
+  <section class="card chart-card">
+    <div class="periods" id="periods" role="tablist" aria-label="Time period"></div>
+
+    <div class="chart-wrap">
+      <div id="legend" class="legend" hidden></div>
+      <div id="chart"></div>
+      <div id="chart-veil" class="veil"><span class="spinner"></span></div>
+    </div>
+  </section>
+
+  <!-- stats -->
+  <section class="card stats-card">
+    <div class="fundamentals">
+      <section class="fgroup">
+        <h2>Trade</h2>
+        <dl>
+          <div><dt>High</dt><dd id="f-high">—</dd></div>
+          <div><dt>Low</dt><dd id="f-low">—</dd></div>
+          <div><dt>Open</dt><dd id="f-open">—</dd></div>
+          <div><dt>Volume</dt><dd id="f-vol">—</dd></div>
+          <div><dt>Volume (B/S)</dt><dd id="f-volbs">—</dd></div>
+          <div><dt>Price Bid/Ask</dt><dd id="f-bidask">—</dd></div>
+        </dl>
+      </section>
+      <section class="fgroup">
+        <h2>Valuation</h2>
+        <dl>
+          <div><dt>52w</dt><dd id="f-52w">—</dd></div>
+          <div><dt>ROE</dt><dd id="f-roe">—</dd></div>
+          <div><dt>P/E</dt><dd id="f-pe">—</dd></div>
+          <div><dt>EPS</dt><dd id="f-eps">—</dd></div>
+          <div><dt>DPS</dt><dd id="f-dps">—</dd></div>
+          <div><dt>DY</dt><dd id="f-dy">—</dd></div>
+        </dl>
+      </section>
+      <section class="fgroup">
+        <h2>Balance sheet</h2>
+        <dl>
+          <div><dt>NTA</dt><dd id="f-nta">—</dd></div>
+          <div><dt>P/B</dt><dd id="f-pb">—</dd></div>
+          <div><dt>RPS</dt><dd id="f-rps">—</dd></div>
+          <div><dt>PSR</dt><dd id="f-psr">—</dd></div>
+          <div><dt>Market Cap</dt><dd id="f-mcap">—</dd></div>
+          <div><dt>Shares (mil)</dt><dd id="f-shares">—</dd></div>
+        </dl>
+      </section>
+    </div>
+
+    <div class="range52">
+      <div class="range52-head">
+        <span>52-week range</span>
+        <span id="r-pos" class="range52-pos"></span>
+      </div>
+      <div class="range52-track"><div id="r-fill" class="range52-fill"></div><div id="r-dot" class="range52-dot"></div></div>
+      <div class="range52-ends"><span id="r-low">—</span><span id="r-high">—</span></div>
+    </div>
+  </section>
+
+  <p id="status" class="status" hidden></p>
+</main>
+
+<footer class="foot">
+  Prices from KLSE Screener · names from i3investor · not real-time · personal use only
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
